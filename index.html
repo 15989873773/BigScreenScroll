@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <link rel="stylesheet" href="./index.css">
+</head>
+<body>
+    <span class="ready-text">选择图片：</span>
+    <input type="file" id="uploadImg" accept="image/png, image/jpeg" multiple>
+    <div id="imgPreviewList">
+        
+    </div>
+    <span class="ready-text">选择背景音乐：</span>
+    <input type="file" id="uploadMusic" accept="audio/mp3">
+    <div>
+        <button id="clean">clean</button>
+        <button id="start">start</button>
+    </div>
+    <button id="back">back</button>
+    <div class="imgScreenWrap">
+        <div id="imgScreen"></div>
+    </div>
+    <!-- <button id="next" class="next">next</button>
+    <button id="prev" class="prev">prev</button> -->
+    <audio src="" id="audio" autoplay controls></audio>
+    <script>
+        let uploadImg = document.getElementById('uploadImg');
+        let imgPreviewList = document.getElementById('imgPreviewList');
+        let imgScreen = document.getElementById('imgScreen');
+        let start = document.getElementById('start');
+        let back = document.getElementById('back');
+        let clean = document.getElementById('clean');
+        // let next = document.getElementsByClassName('next')[0];
+        // let prev = document.getElementsByClassName('prev')[0];
+        let uploadMusic = document.getElementById('uploadMusic');
+        let audio = document.getElementById('audio');
+        let readyText = document.getElementsByClassName('ready-text');
+        let urlList = [];
+        let musicUrl = '';
+        let winWidth,winHeight;
+        let MoveTimer = null;
+        let mode = 'ready';
+        getWindowSize();
+        uploadImg.onchange = () => {
+            [].slice.call(uploadImg.files).forEach(element => {
+                let itemUrl = window.URL.createObjectURL(element);
+                urlList.push(itemUrl);
+                createImgItem(imgPreviewList,itemUrl);
+            });
+        }
+        uploadMusic.onchange = () => {
+            musicUrl = window.URL.createObjectURL(...uploadMusic.files);
+        }
+        start.onclick = () => {
+            if(urlList.length){
+                mode = 'play';
+                uploadImg.classList.add('hide');
+                imgPreviewList.classList.add('hide');
+                start.classList.add('hide');
+                clean.classList.add('hide');
+                back.classList.add('backShow');
+                uploadMusic.classList.add('hide');
+                // next.classList.add('show');
+                // prev.classList.add('show');
+                [].slice.call(readyText).forEach((ele) => {
+                    ele.classList.add('hide');
+                })
+                imgScreen.style.left = 0 + 'px';
+                urlList.forEach((ele) => {
+                    createScreenItem(imgScreen,ele);
+                })
+                audio.classList.add('show');
+                audio.src = musicUrl;
+            }
+        }
+        audio.addEventListener('ended', () => {
+            console.log('end')
+            clearInterval(MoveTimer);
+            MoveTimer = null;
+        })
+        audio.addEventListener('pause',() => {
+            console.log('pause')
+            clearInterval(MoveTimer);
+            MoveTimer = null;
+        })
+        audio.addEventListener('play',imgMove);
+        audio.addEventListener('canplay', imgMove);
+        function imgMove () {
+            clearInterval(MoveTimer);
+            MoveTimer = null;
+            console.log('play')
+            let imgMoveDistanceArr = getImgMoveDistance(imgScreen);
+            MoveTimer = setInterval(() => {
+                startMove(imgMoveDistanceArr,imgScreen);
+            },3000);
+        }
+        clean.onclick = () => {
+            imgPreviewList.innerHTML = '';
+            urlList = [];
+        }
+        back.onclick = () => {
+            clearInterval(MoveTimer);
+            MoveTimer = null;
+            mode = 'ready';
+            uploadImg.classList.remove('hide');
+            imgPreviewList.classList.remove('hide');
+            start.classList.remove('hide');
+            clean.classList.remove('hide');
+            back.classList.remove('backShow');
+            uploadMusic.classList.remove('hide');
+            [].slice.call(readyText).forEach((ele) => {
+                ele.classList.remove('hide');
+            })
+            audio.classList.remove('show');
+            audio.src = '';
+            imgScreen.innerHTML = '';
+        }
+        function getImgMoveDistance (imgScreen) {
+            let moveList = [];
+            urlList.forEach((ele,index) => {
+                moveList.push(-index*winWidth);
+            });
+            return moveList;
+        }
+        //因为获取offsetLeft时可能会有浮点数，不能直接对比，所以要对原生的Array.indexOf方法进行改造
+        Array.prototype.myIndexOf = function (target) {
+            for (let i = 0;i < this.length;i++) {
+                if (Math.abs(this[i] - target) < 2) {
+                    return i;
+                }
+            }
+            return -1;
+        }
+        
+        function startMove (arr,imgScreen) {
+            let index = arr.myIndexOf(imgScreen.offsetLeft);
+            if(index !== -1) {
+                if (index === arr.length-1) {
+                    imgScreen.style.left = arr[0] + 'px'; 
+                } else {
+                    imgScreen.style.left = arr[index+1] + 'px';
+                }
+            }
+        }
+        function createImgItem (imgWrap,src) {
+            let imgItem = document.createElement('img');
+            imgItem.src = src;
+            imgWrap.appendChild(imgItem);
+        }
+        function createScreenItem (imgWrap,src) {
+            document.getElementsByClassName('imgScreenWrap')[0].style.width = winWidth + 'px';
+            imgWrap.style.width = winWidth * urlList.length + 'px';
+            let imgScreenItemWrap = document.createElement('div');
+            imgScreenItemWrap.classList.add('imgScreenItemWrap');
+            imgScreenItemWrap.style.height = winHeight + 'px';
+            imgScreenItemWrap.style.width = winWidth + 'px';
+            let imgScreenItem = document.createElement('img');
+            imgScreenItem.src = src;
+            imgScreenItem.style.height = winHeight + 'px';
+            imgScreenItemWrap.appendChild(imgScreenItem);
+            imgWrap.appendChild(imgScreenItemWrap);
+        }
+        function getWindowSize () {
+            winWidth = document.documentElement.clientWidth;
+            winHeight = document.documentElement.clientHeight;
+        }
+        window.onresize = () => {
+            getWindowSize();
+            if (mode === 'play') {
+                imgScreen.innerHTML = '';
+                urlList.forEach((ele) => {
+                    createScreenItem(imgScreen,ele);
+                })
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,96 @@
+*{
+    margin: 0;
+    padding: 0;
+}
+#uploadImg.hide{
+    display: none;
+}
+#imgPreviewList{
+    height: 220px;
+    width: 100%;
+    border: 1px solid black;
+    display: flex;
+    overflow: auto;
+    box-sizing: border-box;
+}
+#imgPreviewList.hide{
+    display: none;
+}
+#imgPreviewList img{
+    height: 216px;
+    margin: 1px;
+    /* background: ; */
+}
+#start.hide{
+    display: none;
+}
+#clean.hide{
+    display: none;
+}
+#back{
+    position: absolute;
+    left: 10px;
+    top: 10px;
+    display: none;
+    opacity: 0;
+}
+#back:hover{
+    opacity: 1;
+}
+#back.backShow{
+    z-index: 99;
+    display: flex;
+}
+.imgScreenWrap{
+    overflow: hidden;
+}
+.next.show{
+    display: block;
+    position: fixed;
+    top: 45%;
+    right: 0.5rem;
+    z-index: 99;
+}
+.prev{
+    display: none;
+}
+.next{
+    display: none;
+}
+.prev.show{
+    display: block;
+    position: fixed;
+    top: 45%;
+    left: 0.5rem;
+    z-index: 99;
+}
+#imgScreen{
+    position: absolute;
+    left: 0;
+    top: 0;
+    display: flex;
+}
+#imgScreen .imgScreenItemWrap{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+#audio{
+    display: none;
+    opacity: 0;
+    position: fixed;
+    left: 40%;
+    bottom: 5%;
+}
+#audio:hover{
+    opacity: 1;
+}
+#audio.show{
+    display: block;
+}
+.ready-text.hide{
+    display: none;
+}
+#uploadMusic.hide{
+    display: none;
+}
